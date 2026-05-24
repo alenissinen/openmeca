@@ -11,6 +11,8 @@
 mod codec;
 mod error;
 mod ids;
+mod shifter;
+mod transport;
 
 pub use error::{Error, Result};
 pub use ids::{DeviceKind, VENDOR_ID};
