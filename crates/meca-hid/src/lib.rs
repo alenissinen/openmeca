@@ -16,6 +16,7 @@ mod transport;
 
 pub use error::{Error, Result};
 pub use ids::{DeviceKind, VENDOR_ID};
+pub use shifter::{Shift, Shifter};
 
 /// A device that produces input reports. The report differs per device so each implementor
 /// provides its own [`InputDevice::Input`] type.
