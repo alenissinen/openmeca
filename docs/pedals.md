@@ -84,3 +84,43 @@ Decoded:
 
 - Input report confirmed: 3x uint16 (LE) axes, logical max 4096. Axes are reported as Rx/Ry/Rz.
 - 64-byte feature report, most likely carrier of configuration data (calibration, deadzones, curve). Explains interrupt OUT endpoint.
+
+## Config protocol (Feature report, 64 bytes)
+
+Tools used: Wireshark, USBPcap, official control panel to change settings and read console output
+
+Configuration is written per channel via SET_REPORT (bmRequestType 0x21, bRequest 0x09, wValue 0x0300 = Feature/report id 0, wLength 64). Reading the config uses GET_REPORT. The format is deterministic -> identical settings produce identical bytes.
+
+Report consists of 32 uint16 values as described in the report descriptor.
+Layout: [dataId, 9 (x,y) curve points, 13 zero]
+
+| Index | Field            | Notes                                        |
+| ----- | ---------------- | -------------------------------------------- |
+| 0     | dataId (channel) | 0xF101 clutch, 0xF102 brake, 0xF103 throttle |
+| 1-18  | 9 (x, y) points  | x = input, y = output                        |
+| 19-31 | 0 (padding)      |                                              |
+
+Rules (observed from SET_REPORT requests and confirmed from original source files)
+
+- Each channel (pedal) is written as separate feature report via SET_REPORT (bmRequestType 0x21, bRequest 0x09, wValue 0x0300, wLength 64).
+- dataId selects the channel: 0xF101 clutch, 0xF102 brake, 0xF103 throttle.
+- The pedal curve is 9 points (x = input 0-4096, y = output 0-4096):
+  - Points 0 and 1:
+    - 0.x = calibrated raw bottom
+    - 1.x = calibrated raw bottom + bottom deadzone
+    - 0.y & 1.y = 0
+  - Points 2-6:
+    - Spaced evenly (x-axis) between point 1 and 7
+    - step = (7.x - 1.x) / 6
+  - Points 7 and 8:
+    - 7.x = calibrated raw top - top deadzone
+    - 8.x = calibrated raw top
+    - 7.y & 8.y = 4096
+- Deadzone is not stored as a value, the % is converted to a raw x and the curve x-axis is recomputed.
+
+## Calibration
+
+Calibration doesn't have its own report, it recomputes the curve frome measured rest / fully pressed raw values and sends the same feature report.
+
+Steps: throttle rest+full, brake rest+force, clutch (confirm that it is connected) rest+full.  
+Brake is calibrated to force instead travel (normal for load cell brakes).
