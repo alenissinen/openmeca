@@ -25,9 +25,21 @@ def dump(vid, pid):
     finally:
         dev.close()
 
+def read_feature(vid, pid, report_id=0, length=65):
+    dev = hid.device()
+    dev.open(vid, pid)
+
+    try:
+        data = dev.get_feature_report(report_id, length)
+        print("[{:2}] {}".format(len(data), " ".join(f"{b:02x}" for b in data)))
+    finally:
+        dev.close()
+
 if __name__ == "__main__":
+    print("Usage:\n\tpython dump.py <vid_hex> <pid_hex>\n\tpython dump.py feature <vid_hex> <pid_hex>\n")
     if len(sys.argv) < 3:
         list_devices()
-        print("\nUsage: python dump.py <vid_hex> <pid_hex>")
+    elif sys.argv[1] == "feature":
+        read_feature(int(sys.argv[2], 16), int(sys.argv[3], 16))
     else:
         dump(int(sys.argv[1], 16), int(sys.argv[2], 16))
