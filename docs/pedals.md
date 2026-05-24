@@ -123,4 +123,4 @@ Rules (observed from SET_REPORT requests and confirmed from original source file
 Calibration doesn't have its own report, it recomputes the curve frome measured rest / fully pressed raw values and sends the same feature report.
 
 Steps: throttle rest+full, brake rest+force, clutch (confirm that it is connected) rest+full.  
-Brake is calibrated to force instead travel (normal for load cell brakes).
+Brake is calibrated to force instead of travel (normal for load cell brakes).
