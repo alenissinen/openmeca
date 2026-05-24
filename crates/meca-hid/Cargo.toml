@@ -1,0 +1,9 @@
+[package]
+name = "meca-hid"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+description = "Reverse-engineered HID driver for MECA EVO sim racing peripherals"
+
+[dependencies]
+hidapi = "2"
