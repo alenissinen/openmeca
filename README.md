@@ -2,7 +2,7 @@
 
 An open-source control panel and HID protocol documentation for the MECA EVO sim racing peripherals: load cell pedals, handbrake and shifter.
 
-> **Disclaimer**  
+> [!IMPORTANT]  
 > This is an independent, unofficial project and is **not** affiliated with Meca Sim Hardware.
 > "MECA", "Meca" and product names are used only to describe hardware compatibility.
 > If you are affiliated with Meca Sim Hardware, please send email to me! Email address can be found from my github profile.
