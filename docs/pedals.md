@@ -44,7 +44,7 @@ Tool used: USBTreeView
 
 | Endpoint | Direction | Type      | Max packet size | Purpose               |
 | -------- | --------- | --------- | --------------- | --------------------- |
-| `0x01`   | OUT       | Interrupt | 64 bytes        | TBD                   |
+| `0x01`   | OUT       | Interrupt | 64 bytes        | Unused?               |
 | `0x81`   | IN        | Interrupt | 64 bytes        | Continuous pedal data |
 
 ## Report descriptor
