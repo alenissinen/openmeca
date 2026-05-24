@@ -46,3 +46,41 @@ Tool used: USBTreeView
 | -------- | --------- | --------- | --------------- | --------------------- |
 | `0x01`   | OUT       | Interrupt | 64 bytes        | TBD                   |
 | `0x81`   | IN        | Interrupt | 64 bytes        | Continuous pedal data |
+
+## Report descriptor
+
+Tools used: Wireshark, USBPcap
+
+37-byte HID report descriptor.
+
+Raw bytes:
+05 01 09 04 a1 01 09 33 09 34 09 35 15 00 26 00 10 75 10 95 03 81 02
+09 00 15 00 26 00 10 75 10 95 20 b1 02 c0
+
+Decoded:
+
+| Bytes      | Item                         | Meaning                 |
+| ---------- | ---------------------------- | ----------------------- |
+| `05 01`    | Usage Page (Generic Desktop) |                         |
+| `09 04`    | Usage (Joystick)             |                         |
+| `a1 01`    | Collection (Application)     |                         |
+| `09 33`    | Usage (Rx)                   | axis 1                  |
+| `09 34`    | Usage (Ry)                   | axis 2                  |
+| `09 35`    | Usage (Rz)                   | axis 3                  |
+| `15 00`    | Logical Minimum (0)          |                         |
+| `26 00 10` | Logical Maximum (4096)       | confirms range          |
+| `75 10`    | Report Size (16)             | 16-bit axes             |
+| `95 03`    | Report Count (3)             | 3 axes                  |
+| `81 02`    | Input (Data,Var,Abs)         | 6-byte input report     |
+| `09 00`    | Usage (Undefined)            | vendor specific blob?   |
+| `15 00`    | Logical Minimum (0)          |                         |
+| `26 00 10` | Logical Maximum (4096)       |                         |
+| `75 10`    | Report Size (16)             |                         |
+| `95 20`    | Report Count (32)            | 32 x 16 bits = 64 bytes |
+| `b1 02`    | Feature (Data,Var,Abs)       | 64-byte feature report  |
+| `c0`       | End Collection               |                         |
+
+### Findings
+
+- Input report confirmed: 3x uint16 (LE) axes, logical max 4096. Axes are reported as Rx/Ry/Rz.
+- 64-byte feature report, most likely carrier of configuration data (calibration, deadzones, curve). Explains interrupt OUT endpoint.
