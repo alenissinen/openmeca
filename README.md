@@ -4,7 +4,7 @@ An open-source control panel and HID protocol documentation for the MECA EVO sim
 
 > [!IMPORTANT]  
 > This is an independent, unofficial project and is **not** affiliated with Meca Sim Hardware.
-> "MECA", "Meca" and product names are used only to describe hardware compatibility.
+> "MECA", "Meca" and product names are used only to describe hardware compatibility.  
 > If you are affiliated with Meca Sim Hardware, please send email to me! Email address can be found from my github profile.
 
 ## Why this exists
@@ -25,5 +25,5 @@ This is also a learning exercise combined to a real problem because low-level (d
 
 ## License
 
-MIT
+MIT  
 See [LICENSE](LICENSE) for details.
