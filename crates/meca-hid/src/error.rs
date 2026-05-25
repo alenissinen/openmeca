@@ -12,6 +12,8 @@ pub enum Error {
     DeviceNotFound(DeviceKind),
     /// Input report was shorter than expected.
     ShortReport { expected: usize, got: usize },
+    /// Feature report contained an unknown dataId.
+    UnknownDataId(u16),
 }
 
 impl fmt::Display for Error {
@@ -25,6 +27,7 @@ impl fmt::Display for Error {
                     "Short input report: expected {expected} bytes, got {got}"
                 )
             }
+            Error::UnknownDataId(id) => write!(f, "Unknown dataId in feature report: {id:#06X}"),
         }
     }
 }
