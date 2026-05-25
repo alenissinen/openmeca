@@ -83,7 +83,7 @@ Decoded:
 ### Findings
 
 - Input report confirmed: 3x uint16 (LE) axes, logical max 4096. Axes are reported as Rx/Ry/Rz.
-- 64-byte feature report, most likely carrier of configuration data (calibration, deadzones, curve). Explains interrupt OUT endpoint.
+- ~~64-byte feature report, most likely carrier of configuration data (calibration, deadzones, curve). Explains interrupt OUT endpoint.~~ OUT endpoint wasn't used for anything.
 
 ## Config protocol (Feature report, 64 bytes)
 
@@ -117,6 +117,7 @@ Rules (observed from SET_REPORT requests and confirmed from original source file
     - 8.x = calibrated raw top
     - 7.y & 8.y = 4096
 - Deadzone is not stored as a value, the % is converted to a raw x and the curve x-axis is recomputed.
+- Brake only: a second feature report is sent with dataId 0xF201 (load cell) or 0xF202 (hydraulic) which selects the brake type.
 
 ## Calibration
 
