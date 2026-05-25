@@ -11,11 +11,13 @@
 mod codec;
 mod error;
 mod ids;
+mod pedals;
 mod shifter;
 mod transport;
 
 pub use error::{Error, Result};
 pub use ids::{DeviceKind, VENDOR_ID};
+pub use pedals::{PedalInput, Pedals};
 pub use shifter::{Shift, Shifter};
 
 /// A device that produces input reports. The report differs per device so each implementor
