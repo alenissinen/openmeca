@@ -9,6 +9,7 @@
 //!
 
 mod codec;
+pub mod curve;
 mod error;
 mod ids;
 mod pedals;
