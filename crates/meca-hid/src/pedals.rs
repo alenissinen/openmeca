@@ -3,10 +3,58 @@
 //! 6-byte input report that has three 16-bit (LE) axes (see `docs/pedals.md`). Configuartion
 //! is a 64-byte feature report.
 
-use crate::{DeviceKind, Error, InputDevice, Result, codec::iter_u16_le, transport::Transport};
+use crate::{
+    DeviceKind, Error, InputDevice, Result,
+    codec::{decode_u16_le_buffer, encode_u16_le_buffer, iter_u16_le},
+    curve::Curve,
+    transport::Transport,
+};
 
 /// Input report layout (3x 2-byte)
 const INPUT_REPORT_LEN: usize = 6;
+
+/// One of the three pedal channels identified by dataId.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PedalChannel {
+    Clutch,
+    Brake,
+    Throttle,
+}
+
+impl PedalChannel {
+    // The dataId written as uint16 (index 0) in the feature report.
+    pub const fn data_id(self) -> u16 {
+        match self {
+            PedalChannel::Clutch => 0xF101,
+            PedalChannel::Brake => 0xF102,
+            PedalChannel::Throttle => 0xF103,
+        }
+    }
+
+    /// Maps a dataId back to a channel, if known.
+    pub const fn from_data_id(id: u16) -> Option<Self> {
+        match id {
+            0xF101 => Some(PedalChannel::Clutch),
+            0xF102 => Some(PedalChannel::Brake),
+            0xF103 => Some(PedalChannel::Throttle),
+            _ => None,
+        }
+    }
+}
+
+// TODO: dig deeper to figure out if there are more differences between lc and hydro
+/// Brake sensor type, sent as a second feature report after the brake curve
+pub enum BrakeType {
+    LoadCell,
+}
+
+impl BrakeType {
+    const fn data_id(self) -> u16 {
+        match self {
+            BrakeType::LoadCell => 0xF201,
+        }
+    }
+}
 
 /// Decoded pedal state. Each axis has a range from 0-4096 (0x0000-0x1000). Logical max
 /// defined by observation and HID report descriptor.
@@ -44,6 +92,47 @@ impl Pedals {
         Ok(Self {
             transport: Transport::open(DeviceKind::Pedals)?,
         })
+    }
+
+    /// Writes a single channels curve to the device.
+    pub fn write_curve(&self, channel: PedalChannel, curve: &Curve) -> Result<()> {
+        let report = curve.to_report(channel.data_id());
+        let bytes = encode_u16_le_buffer(&report);
+
+        self.transport.set_feature(&bytes)
+    }
+
+    /// Writes all three curves to the device.
+    pub fn write_config(&self, clutch: &Curve, brake: &Curve, throttle: &Curve) -> Result<()> {
+        self.write_curve(PedalChannel::Clutch, clutch)?;
+        self.write_curve(PedalChannel::Brake, brake)?;
+        self.write_curve(PedalChannel::Throttle, throttle)
+    }
+
+    /// Sets the brake sensor type.
+    pub fn write_brake_type(&self, brake_type: BrakeType) -> Result<()> {
+        let mut report = [0u16; 32];
+        report[0] = brake_type.data_id();
+        let bytes = encode_u16_le_buffer(&report);
+
+        self.transport.set_feature(&bytes)
+    }
+
+    /// Reads the current feature report and decodes it as a curve.
+    /// Returns the channel and curve. At least for now there seems to
+    /// be no way to request a specific channel so this is kind of useless.
+    pub fn read_curve(&self) -> Result<(PedalChannel, Curve)> {
+        let bytes = self.transport.get_feature()?;
+        let data = decode_u16_le_buffer(&bytes);
+
+        let channel = PedalChannel::from_data_id(data[0]).ok_or(Error::UnknownDataId(data[0]))?;
+
+        let curve = Curve::from_report(&data).ok_or(Error::ShortReport {
+            expected: 19,
+            got: data.len(),
+        })?;
+
+        Ok((channel, curve))
     }
 }
 
