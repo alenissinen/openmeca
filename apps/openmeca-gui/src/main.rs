@@ -109,10 +109,12 @@ fn title_button(label: &str, msg: Message, is_close: bool) -> Element<'_, Messag
             (button::Status::Pressed, false) => iced::Color::from_rgba(1.0, 1.0, 1.0, 0.15),
             _ => iced::Color::TRANSPARENT,
         };
+
         let text_color = match (status, is_close) {
             (button::Status::Hovered | button::Status::Pressed, true) => iced::Color::WHITE,
             _ => iced::Color::from_rgb(0.7, 0.7, 0.7),
         };
+
         button::Style {
             background: Some(bg.into()),
             text_color,
