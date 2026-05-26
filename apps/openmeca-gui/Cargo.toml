@@ -1,0 +1,10 @@
+[package]
+author = "Aleksanteri Nissinen"
+name = "openmeca-gui"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+
+[dependencies]
+iced = { version = "0.14", features = ["canvas"] }
+meca-hid = { path = "../../crates/meca-hid" }
