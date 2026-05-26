@@ -23,6 +23,7 @@ This is also a learning exercise combined to a real problem because low-level (d
 - `docs/`: notes and protocol documentation, each device has its own file (`pedals.md` etc).
 - `tools/`: scripts etc. used during reverse engineering.
 - `crates/`: rust crates for the actual control panel to use.
+- `apps/`: control panel gui.
 
 ## License
 
