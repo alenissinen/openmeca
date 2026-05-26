@@ -17,7 +17,6 @@ mod pedals;
 mod shifter;
 mod transport;
 
-pub use crate::{DeviceStatus, discover};
 pub use error::{Error, Result};
 pub use handbrake::Handbrake;
 pub use ids::{DeviceKind, VENDOR_ID};
