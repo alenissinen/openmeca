@@ -11,12 +11,14 @@
 mod codec;
 pub mod curve;
 mod error;
+mod handbrake;
 mod ids;
 mod pedals;
 mod shifter;
 mod transport;
 
 pub use error::{Error, Result};
+pub use handbrake::Handbrake;
 pub use ids::{DeviceKind, VENDOR_ID};
 pub use pedals::{PedalChannel, PedalInput, Pedals};
 pub use shifter::{Shift, Shifter};
