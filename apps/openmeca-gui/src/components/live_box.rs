@@ -13,7 +13,7 @@ pub fn live_box<'a>(raw: u16, accent: Color) -> Element<'a, Message> {
 
     container(
         column![
-            text("LIVE").size(9).font(FONT_MONO).color(COLOR_SUBTLE),
+            text("LIVE").size(12).font(FONT_MONO),
             row![
                 column![
                     text(format!("{}%", pct))
