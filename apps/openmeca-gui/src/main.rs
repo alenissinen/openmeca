@@ -9,7 +9,7 @@ use iced::{
     widget::{button, column, container, row, text},
     window,
 };
-use meca_hid::{DeviceStatus, PedalChannel, PedalInput, Pedals, curve::Curve};
+use meca_hid::{DeviceStatus, PedalChannel, PedalInput, curve::Curve};
 
 use crate::components::{
     curve_points::curve_points, deadzones::deadzones, debug_box::debug_box, live_box::live_box,
@@ -196,22 +196,6 @@ impl App {
     }
 
     fn view(&self) -> Element<'_, Message> {
-        if !self.selected.is_connected(&self.devices) {
-            return text(
-                "
-                This device isn't connected!\n
-                If the device is connected but doesn't show up, \
-                try restarting the application. \
-                If the issue persists, please open an issue in github!
-                ",
-            )
-            .size(18)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .center()
-            .into();
-        }
-
         let curve = self.selected.curve(&self.curves);
         let raw = self.selected.raw_value(&self.pedal_input);
         let accent = self.selected.pedal_color(&self.theme);
@@ -261,16 +245,33 @@ impl App {
             panels = panels.push(debug_box(report, accent, dz_bottom, dz_top));
         }
 
-        let content = container(
-            column![
-                row![iced::widget::Space::new().width(Length::Fill), debug_toggle],
-                panels,
-            ]
-            .spacing(12),
-        )
-        .padding(20)
-        .width(Length::Fill)
-        .height(Length::Fill);
+        let content = match self.selected.is_connected(&self.devices) {
+            true => container(
+                column![
+                    row![iced::widget::Space::new().width(Length::Fill), debug_toggle],
+                    panels,
+                ]
+                .spacing(12),
+            )
+            .padding(20)
+            .width(Length::Fill)
+            .height(Length::Fill),
+            false => container(
+                text(
+                    "
+                This device isn't connected!\n
+                If the device is connected but doesn't show up, \
+                try restarting the application.\n
+                If the issue persists, please open an issue in github!
+                ",
+                )
+                .size(18)
+                .line_height(1.0)
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .center(),
+            ),
+        };
 
         let body =
             row![sidebar(&self.selected, &self.devices, &self.theme), content].height(Length::Fill);
