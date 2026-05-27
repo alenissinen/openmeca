@@ -1,16 +1,20 @@
 mod components;
 mod constants;
+mod utils;
 
 use constants::*;
 use iced::{
-    Element, Length, Subscription, Task, Theme,
+    Color, Element, Length, Subscription, Task, Theme,
     time::{self, Duration},
-    widget::{column, container, row, text},
+    widget::{column, container, row},
     window,
 };
-use meca_hid::DeviceStatus;
+use meca_hid::{DeviceStatus, PedalInput};
 
-use crate::components::{sidebar::sidebar, title_bar::title_bar};
+use crate::{
+    components::{live_box::live_box, sidebar::sidebar, title_bar::title_bar},
+    utils::pedal_input::pedal_subscription,
+};
 
 fn main() -> iced::Result {
     iced::application(App::new, App::update, App::view)
@@ -54,11 +58,28 @@ impl NavItem {
             NavItem::Shifter => status.shifter,
         }
     }
+
+    fn pedal_color(&self, theme: &Theme) -> Color {
+        match self {
+            NavItem::Throttle | NavItem::Brake | NavItem::Clutch => theme.palette().primary,
+            _ => COLOR_DIM,
+        }
+    }
+
+    fn raw_value(&self, input: &PedalInput) -> u16 {
+        match self {
+            NavItem::Throttle => input.throttle,
+            NavItem::Brake => input.brake,
+            NavItem::Clutch => input.clutch,
+            _ => 0,
+        }
+    }
 }
 
 struct App {
     selected: NavItem,
     devices: DeviceStatus,
+    pedal_input: PedalInput,
     theme: Theme,
 }
 
@@ -71,6 +92,7 @@ enum Message {
     Navigate(NavItem),
     RefreshDevices,
     DevicesUpdated(DeviceStatus),
+    PedalInputUpdated(PedalInput),
 }
 
 impl App {
@@ -78,6 +100,7 @@ impl App {
         Self {
             selected: NavItem::Throttle,
             devices: DeviceStatus::default(),
+            pedal_input: PedalInput::default(),
             theme: Theme::Oxocarbon,
         }
     }
@@ -101,18 +124,28 @@ impl App {
                 self.devices = status;
                 Task::none()
             }
+            Message::PedalInputUpdated(input) => {
+                self.pedal_input = input;
+                Task::none()
+            }
         }
     }
 
     fn subscription(&self) -> Subscription<Message> {
-        time::every(Duration::from_secs(2)).map(|_| Message::RefreshDevices)
+        Subscription::batch([
+            time::every(Duration::from_secs(2)).map(|_| Message::RefreshDevices),
+            pedal_subscription(),
+        ])
     }
 
     fn view(&self) -> Element<'_, Message> {
-        let content = container(text(self.selected.label()).size(14))
+        let raw = self.selected.raw_value(&self.pedal_input);
+        let color = self.selected.pedal_color(&self.theme);
+
+        let content = container(live_box(raw, color))
+            .padding(20)
             .width(Length::Fill)
-            .height(Length::Fill)
-            .center(Length::Fill);
+            .height(Length::Fill);
 
         let body =
             row![sidebar(&self.selected, &self.devices, &self.theme), content].height(Length::Fill);

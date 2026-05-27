@@ -7,4 +7,5 @@ license = "MIT"
 
 [dependencies]
 iced = { version = "0.14", features = ["canvas", "tokio"] }
+tokio = "1"
 meca-hid = { path = "../../crates/meca-hid" }
