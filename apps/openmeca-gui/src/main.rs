@@ -6,14 +6,14 @@ use constants::*;
 use iced::{
     Color, Element, Length, Subscription, Task, Theme,
     time::{self, Duration},
-    widget::{button, column, container, row, text},
+    widget::{button, column, container, row, scrollable, text},
     window,
 };
 use meca_hid::{DeviceStatus, PedalChannel, PedalInput, curve::Curve};
 
 use crate::components::{
-    curve_points::curve_points, deadzones::deadzones, debug_box::debug_box, live_box::live_box,
-    sidebar::sidebar, title_bar::title_bar,
+    curve_editor::curve_editor, curve_points::curve_points, deadzones::deadzones,
+    debug_box::debug_box, live_box::live_box, sidebar::sidebar, title_bar::title_bar,
 };
 use crate::utils::pedal_input::pedal_subscription;
 
@@ -26,7 +26,7 @@ fn main() -> iced::Result {
         .default_font(FONT_UI)
         .font(include_bytes!("../fonts/Outfit-Regular.ttf"))
         .font(include_bytes!("../fonts/JetBrainsMono-Regular.ttf"))
-        .window_size((1152, 720))
+        .window_size((1052, 620))
         .antialiasing(true)
         .subscription(App::subscription)
         .run()
@@ -137,6 +137,7 @@ enum Message {
     DevicesUpdated(DeviceStatus),
     PedalInputUpdated(PedalInput),
     SetDeadzone(DzEnd, u8),
+    SetCurvePoint(usize, u16),
     ToggleDebug,
 }
 
@@ -179,6 +180,20 @@ impl App {
                     DzEnd::Bottom => curve.set_bottom_dz(value),
                     DzEnd::Top => curve.set_top_dz(100u8 - value),
                 }
+                Task::none()
+            }
+            Message::SetCurvePoint(i, y) => {
+                let curve = self.selected.curve_mut(&mut self.curves);
+                let points = curve.points();
+                let mut new_y: [u16; 5] = points[2..=6]
+                    .iter()
+                    .map(|p| p.y)
+                    .collect::<Vec<_>>()
+                    .try_into()
+                    .unwrap();
+
+                new_y[i] = y;
+                curve.set_middle_y(&new_y);
                 Task::none()
             }
             Message::ToggleDebug => {
@@ -246,16 +261,26 @@ impl App {
         }
 
         let content = match self.selected.is_connected(&self.devices) {
-            true => container(
-                column![
-                    row![iced::widget::Space::new().width(Length::Fill), debug_toggle],
-                    panels,
-                ]
-                .spacing(12),
-            )
-            .padding(20)
-            .width(Length::Fill)
-            .height(Length::Fill),
+            true => {
+                // Estimated height of the right column
+                let column_height: f32 = (120.0 + 16.0) * 2.0 + 105.0 + 130.0 + 16.0;
+
+                container(
+                    column![
+                        row![iced::widget::Space::new().width(Length::Fill), debug_toggle],
+                        row![
+                            curve_editor(curve, raw, accent, column_height),
+                            scrollable(panels).height(Length::Fill).width(330)
+                        ]
+                        .spacing(16)
+                        .height(Length::Fill),
+                    ]
+                    .spacing(12),
+                )
+                .padding(12)
+                .width(Length::Fill)
+                .height(Length::Fill)
+            }
             false => container(
                 text(
                     "

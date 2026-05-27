@@ -1,3 +1,4 @@
+pub mod curve_editor;
 pub mod curve_points;
 pub mod deadzones;
 pub mod debug_box;
