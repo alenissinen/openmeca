@@ -88,14 +88,13 @@ impl<'a> canvas::Program<Message> for CurveEditor<'a> {
             }
 
             canvas::Event::Mouse(mouse::Event::CursorMoved { .. }) => {
-                if let Some(index) = state.drag {
-                    if let Some(pos) = cursor.position_in(bounds) {
-                        let new_y = y_to_val(pos.y, padding, h);
-                        return Some(
-                            canvas::Action::publish(Message::SetCurvePoint(index, new_y))
-                                .and_capture(),
-                        );
-                    }
+                if let Some(index) = state.drag
+                    && let Some(pos) = cursor.position_in(bounds)
+                {
+                    let new_y = y_to_val(pos.y, padding, h);
+                    return Some(
+                        canvas::Action::publish(Message::SetCurvePoint(index, new_y)).and_capture(),
+                    );
                 }
 
                 None
@@ -209,13 +208,13 @@ impl<'a> canvas::Program<Message> for CurveEditor<'a> {
 
             b.move_to(start);
 
-            for i in 1..points.len() {
-                let point = iced::Point::new(
-                    xval_to_x(points[i].x, padding, w),
-                    val_to_y(points[i].y, padding, h),
+            for point in points.iter().skip(1) {
+                let grid_point = iced::Point::new(
+                    xval_to_x(point.x, padding, w),
+                    val_to_y(point.y, padding, h),
                 );
 
-                b.line_to(point);
+                b.line_to(grid_point);
             }
         });
 
@@ -237,9 +236,8 @@ impl<'a> canvas::Program<Message> for CurveEditor<'a> {
             .collect();
 
         for (cx, cy, i) in &ctrl_canvas {
-            let hovered = cursor_pos.map_or(false, |p| {
-                ((p.x - cx).powi(2) + (p.y - cy).powi(2)).sqrt() < 16.0
-            });
+            let hovered =
+                cursor_pos.is_some_and(|p| ((p.x - cx).powi(2) + (p.y - cy).powi(2)).sqrt() < 16.0);
 
             let dragging = state.drag == Some(*i);
             let radius = if dragging {

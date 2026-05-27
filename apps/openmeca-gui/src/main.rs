@@ -7,7 +7,7 @@ use iced::{
     Color, Element, Length, Subscription, Task, Theme,
     time::{self, Duration},
     widget::{button, column, container, row, scrollable, text},
-    window,
+    window::{self, icon},
 };
 use meca_hid::{DeviceStatus, PedalChannel, PedalInput, Shift, curve::Curve};
 
@@ -24,15 +24,22 @@ use crate::{
 };
 
 fn main() -> iced::Result {
+    let icon_bytes = include_bytes!("../assets/icon.png");
+    let icon = icon::from_file_data(icon_bytes, None).expect("Failed to load window icon");
+
     iced::application(App::new, App::update, App::view)
         .title("Openmeca")
+        .window(window::Settings {
+            icon: Some(icon),
+            size: (1052, 620).into(),
+            decorations: false,
+            ..Default::default()
+        })
         .theme(App::theme)
         .centered()
-        .decorations(false)
         .default_font(FONT_UI)
         .font(include_bytes!("../fonts/Outfit-Regular.ttf"))
         .font(include_bytes!("../fonts/JetBrainsMono-Regular.ttf"))
-        .window_size((1052, 620))
         .antialiasing(true)
         .subscription(App::subscription)
         .run()
