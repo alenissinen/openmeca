@@ -13,22 +13,22 @@ pub fn live_box<'a>(raw: u16, accent: Color) -> Element<'a, Message> {
 
     container(
         column![
-            text("LIVE").size(12).font(FONT_MONO),
+            text("LIVE").size(14).font(FONT_MONO),
             row![
                 column![
                     text(format!("{}%", pct))
-                        .size(28)
+                        .size(30)
                         .font(FONT_MONO)
                         .color(accent),
                     text("CALIBRATED")
-                        .size(10)
+                        .size(12)
                         .font(FONT_MONO)
                         .color(COLOR_SUBTLE),
                 ]
                 .spacing(2),
                 column![
-                    text(format!("{}", raw)).size(28).font(FONT_MONO),
-                    text("RAW OUT").size(10).font(FONT_MONO).color(COLOR_SUBTLE),
+                    text(format!("{}", raw)).size(30).font(FONT_MONO),
+                    text("RAW OUT").size(12).font(FONT_MONO).color(COLOR_SUBTLE),
                 ]
                 .spacing(2),
             ]
