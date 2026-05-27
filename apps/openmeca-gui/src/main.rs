@@ -15,7 +15,7 @@ use crate::components::{
     curve_editor::curve_editor, curve_points::curve_points, deadzones::deadzones,
     debug_box::debug_box, live_box::live_box, sidebar::sidebar, title_bar::title_bar,
 };
-use crate::utils::pedal_input::pedal_subscription;
+use crate::utils::{handbrake_input::handbrake_subscription, pedal_input::pedal_subscription};
 
 fn main() -> iced::Result {
     iced::application(App::new, App::update, App::view)
@@ -60,55 +60,62 @@ impl NavItem {
         }
     }
 
-    fn pedal_color(&self, theme: &Theme) -> Color {
+    fn device_color(&self, theme: &Theme) -> Color {
         match self {
-            NavItem::Throttle | NavItem::Brake | NavItem::Clutch => theme.palette().primary,
+            NavItem::Throttle | NavItem::Brake | NavItem::Clutch | NavItem::Handbrake => {
+                theme.palette().primary
+            }
             _ => COLOR_DIM,
         }
     }
 
-    fn raw_value(&self, input: &PedalInput) -> u16 {
+    fn raw_value(&self, input: &PedalInput, handbrake_input: u16) -> u16 {
         match self {
             NavItem::Throttle => input.throttle,
             NavItem::Brake => input.brake,
             NavItem::Clutch => input.clutch,
-            _ => 0,
+            NavItem::Handbrake => handbrake_input,
+            NavItem::Shifter => 0,
         }
     }
 
-    fn channel(&self) -> PedalChannel {
+    fn data_id(&self) -> u16 {
         match self {
-            NavItem::Throttle => PedalChannel::Throttle,
-            NavItem::Brake => PedalChannel::Brake,
-            NavItem::Clutch => PedalChannel::Clutch,
-            _ => PedalChannel::Throttle,
+            NavItem::Throttle => PedalChannel::Throttle.data_id(),
+            NavItem::Brake => PedalChannel::Brake.data_id(),
+            NavItem::Clutch => PedalChannel::Clutch.data_id(),
+            NavItem::Handbrake => 0xF101,
+            NavItem::Shifter => 0,
         }
     }
 
-    fn curve<'a>(&self, curves: &'a PedalCurves) -> &'a Curve {
+    fn curve<'a>(&self, curves: &'a DeviceCurves) -> Option<&'a Curve> {
         match self {
-            NavItem::Throttle => &curves.throttle,
-            NavItem::Brake => &curves.brake,
-            NavItem::Clutch => &curves.clutch,
-            _ => &curves.throttle,
+            NavItem::Throttle => Some(&curves.throttle),
+            NavItem::Brake => Some(&curves.brake),
+            NavItem::Clutch => Some(&curves.clutch),
+            NavItem::Handbrake => Some(&curves.handbrake),
+            NavItem::Shifter => None,
         }
     }
 
-    fn curve_mut<'a>(&self, curves: &'a mut PedalCurves) -> &'a mut Curve {
+    fn curve_mut<'a>(&self, curves: &'a mut DeviceCurves) -> Option<&'a mut Curve> {
         match self {
-            NavItem::Throttle => &mut curves.throttle,
-            NavItem::Brake => &mut curves.brake,
-            NavItem::Clutch => &mut curves.clutch,
-            _ => &mut curves.throttle,
+            NavItem::Throttle => Some(&mut curves.throttle),
+            NavItem::Brake => Some(&mut curves.brake),
+            NavItem::Clutch => Some(&mut curves.clutch),
+            NavItem::Handbrake => Some(&mut curves.handbrake),
+            NavItem::Shifter => None,
         }
     }
 }
 
 #[derive(Debug, Clone, Default)]
-struct PedalCurves {
+struct DeviceCurves {
     throttle: Curve,
     brake: Curve,
     clutch: Curve,
+    handbrake: Curve,
 }
 
 #[derive(Debug, Clone)]
@@ -121,7 +128,8 @@ struct App {
     selected: NavItem,
     devices: DeviceStatus,
     pedal_input: PedalInput,
-    curves: PedalCurves,
+    handbrake_input: u16,
+    curves: DeviceCurves,
     debug: bool,
     theme: Theme,
 }
@@ -136,6 +144,7 @@ enum Message {
     RefreshDevices,
     DevicesUpdated(DeviceStatus),
     PedalInputUpdated(PedalInput),
+    HandbrakeInputUpdated(u16),
     SetDeadzone(DzEnd, u8),
     SetCurvePoint(usize, u16),
     ToggleDebug,
@@ -147,7 +156,8 @@ impl App {
             selected: NavItem::Throttle,
             devices: DeviceStatus::default(),
             pedal_input: PedalInput::default(),
-            curves: PedalCurves::default(),
+            curves: DeviceCurves::default(),
+            handbrake_input: 0,
             debug: false,
             theme: Theme::Oxocarbon,
         }
@@ -174,8 +184,12 @@ impl App {
                 self.pedal_input = input;
                 Task::none()
             }
+            Message::HandbrakeInputUpdated(value) => {
+                self.handbrake_input = value;
+                Task::none()
+            }
             Message::SetDeadzone(end, value) => {
-                let curve = self.selected.curve_mut(&mut self.curves);
+                let curve = self.selected.curve_mut(&mut self.curves).unwrap();
                 match end {
                     DzEnd::Bottom => curve.set_bottom_dz(value),
                     DzEnd::Top => curve.set_top_dz(100u8 - value),
@@ -183,7 +197,7 @@ impl App {
                 Task::none()
             }
             Message::SetCurvePoint(i, y) => {
-                let curve = self.selected.curve_mut(&mut self.curves);
+                let curve = self.selected.curve_mut(&mut self.curves).unwrap();
                 let points = curve.points();
                 let mut new_y: [u16; 5] = points[2..=6]
                     .iter()
@@ -207,13 +221,16 @@ impl App {
         Subscription::batch([
             time::every(Duration::from_secs(2)).map(|_| Message::RefreshDevices),
             pedal_subscription(),
+            handbrake_subscription(),
         ])
     }
 
     fn view(&self) -> Element<'_, Message> {
-        let curve = self.selected.curve(&self.curves);
-        let raw = self.selected.raw_value(&self.pedal_input);
-        let accent = self.selected.pedal_color(&self.theme);
+        let curve = self.selected.curve(&self.curves).unwrap();
+        let raw = self
+            .selected
+            .raw_value(&self.pedal_input, self.handbrake_input);
+        let accent = self.selected.device_color(&self.theme);
 
         let dz_bottom = curve.bottom_dz_percentage();
         let dz_top = curve.top_dz_percentage();
@@ -226,7 +243,7 @@ impl App {
             curve.points()[6].y,
         ];
 
-        let report = curve.to_report(self.selected.channel().data_id());
+        let report = curve.to_report(self.selected.data_id());
 
         let debug_toggle = button(
             text(if self.debug { "DEBUG ▲" } else { "DEBUG ▼" })
