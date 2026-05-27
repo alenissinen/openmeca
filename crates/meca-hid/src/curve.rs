@@ -129,7 +129,7 @@ impl Curve {
         let range: u32 = self.calibrated_range().into();
         let offset: u16 = ((range * dz as u32) / 100) as u16;
 
-        self.points[1].x = (self.points[0].x + offset).min(MAX_VALUE);
+        self.points[1].x = (self.points[0].x + offset).min(self.points[7].x);
         self.recompute_middle_x();
     }
 
@@ -238,8 +238,17 @@ impl Curve {
     fn recompute_middle_x(&mut self) {
         let start = self.points[1].x as u32;
         let end = self.points[7].x as u32;
-        let span = end - start;
 
+        // Handle edge case
+        if end <= start {
+            for i in 0..MIDDLE_COUNT {
+                self.points[i + 2].x = self.points[1].x;
+            }
+
+            return;
+        }
+
+        let span = end - start;
         for i in 0..MIDDLE_COUNT {
             let x = start + (span * (i as u32 + 1)) / INTERVALS as u32;
             self.points[i + 2].x = x.min(MAX_VALUE as u32) as u16;
