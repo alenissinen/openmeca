@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="assets/logo.png" width="400" alt="OpenMeca"/>
+</p>
+
 # Openmeca
 
 An open-source control panel and HID protocol documentation for the MECA EVO sim racing peripherals: load cell pedals, handbrake and shifter.
