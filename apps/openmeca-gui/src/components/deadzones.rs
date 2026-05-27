@@ -12,71 +12,80 @@ pub fn deadzones<'a>(bottom: u8, top: u8, accent: Color) -> Element<'a, Message>
     container(
         column![
             text("DEADZONES").size(14).font(FONT_MONO),
-            row![
-                text("Bottom DZ")
-                    .size(12)
+            column![
+                text("Bottom")
+                    .size(10)
                     .font(FONT_MONO)
                     .color(COLOR_SUBTLE)
-                    .width(70),
-                slider(0u8..=100, bottom, |v| Message::SetDeadzone(
-                    DzEnd::Bottom,
-                    v
-                ))
-                .step(1u8)
-                .style(move |_: &Theme, _| slider::Style {
-                    rail: slider::Rail {
-                        backgrounds: (Background::Color(accent), Background::Color(COLOR_BORDER)),
-                        width: 4.0,
-                        border: Border {
-                            radius: 2.0.into(),
-                            ..Default::default()
-                        }
-                    },
-                    handle: slider::Handle {
-                        shape: slider::HandleShape::Circle { radius: 7.0 },
-                        background: Background::Color(accent),
-                        border_width: 0.0,
-                        border_color: Color::TRANSPARENT,
-                    }
-                }),
-                text(format!("{}%", bottom))
-                    .size(14)
-                    .font(FONT_MONO)
-                    .width(36)
-            ]
-            .spacing(8)
-            .align_y(iced::Alignment::Center),
-            row![
-                text("Top DZ")
-                    .size(12)
-                    .font(FONT_MONO)
-                    .color(COLOR_SUBTLE)
-                    .width(70),
-                slider(0u8..=100, top, |v| Message::SetDeadzone(DzEnd::Top, v))
+                    .width(50),
+                row![
+                    slider(0u8..=100, bottom, |v| Message::SetDeadzone(
+                        DzEnd::Bottom,
+                        v
+                    ))
                     .step(1u8)
                     .style(move |_: &Theme, _| slider::Style {
                         rail: slider::Rail {
                             backgrounds: (
                                 Background::Color(accent),
-                                Background::Color(COLOR_BORDER),
+                                Background::Color(COLOR_BORDER)
                             ),
                             width: 4.0,
                             border: Border {
                                 radius: 2.0.into(),
                                 ..Default::default()
-                            },
+                            }
                         },
                         handle: slider::Handle {
                             shape: slider::HandleShape::Circle { radius: 7.0 },
                             background: Background::Color(accent),
                             border_width: 0.0,
                             border_color: Color::TRANSPARENT,
-                        },
+                        }
                     }),
-                text(format!("{}%", top)).size(14).font(FONT_MONO).width(36),
+                    text(format!("{}%", bottom))
+                        .size(14)
+                        .font(FONT_MONO)
+                        .width(36)
+                ]
+                .spacing(8)
+                .align_y(iced::Alignment::Center)
             ]
-            .spacing(8)
-            .align_y(iced::Alignment::Center),
+            .align_x(iced::Alignment::Start),
+            column![
+                text("Top")
+                    .size(10)
+                    .font(FONT_MONO)
+                    .color(COLOR_SUBTLE)
+                    .width(50),
+                row![
+                    slider(0u8..=100, top, |v| Message::SetDeadzone(DzEnd::Top, v))
+                        .step(1u8)
+                        .style(move |_: &Theme, _| slider::Style {
+                            rail: slider::Rail {
+                                backgrounds: (
+                                    Background::Color(accent),
+                                    Background::Color(COLOR_BORDER),
+                                ),
+                                width: 4.0,
+                                border: Border {
+                                    radius: 2.0.into(),
+                                    ..Default::default()
+                                },
+                            },
+                            handle: slider::Handle {
+                                shape: slider::HandleShape::Circle { radius: 7.0 },
+                                background: Background::Color(accent),
+                                border_width: 0.0,
+                                border_color: Color::TRANSPARENT,
+                            },
+                        }),
+                    text(format!("{}%", top)).size(14).font(FONT_MONO).width(36)
+                ]
+                .spacing(8)
+                .align_y(iced::Alignment::Center),
+            ]
+            .align_x(iced::Alignment::Start),
         ]
         .spacing(10),
     )
