@@ -35,6 +35,13 @@ pub struct Curve {
     points: [Point; POINT_COUNT],
 }
 
+impl Default for Curve {
+    /// Use linear curve as default curve type.
+    fn default() -> Self {
+        Self::linear()
+    }
+}
+
 impl Curve {
     /// Creates a default linear curve without calibration or deadzone offsets.
     pub fn linear() -> Self {
