@@ -1,3 +1,6 @@
+pub mod curve_points;
+pub mod deadzones;
+pub mod debug_box;
 pub mod live_box;
 pub mod nav_item;
 pub mod sidebar;
