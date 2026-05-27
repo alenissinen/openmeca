@@ -9,13 +9,19 @@ use iced::{
     widget::{button, column, container, row, scrollable, text},
     window,
 };
-use meca_hid::{DeviceStatus, PedalChannel, PedalInput, curve::Curve};
+use meca_hid::{DeviceStatus, PedalChannel, PedalInput, Shift, curve::Curve};
 
-use crate::components::{
-    curve_editor::curve_editor, curve_points::curve_points, deadzones::deadzones,
-    debug_box::debug_box, live_box::live_box, sidebar::sidebar, title_bar::title_bar,
+use crate::{
+    components::shifter_view::shifter_view,
+    utils::{handbrake_input::handbrake_subscription, pedal_input::pedal_subscription},
 };
-use crate::utils::{handbrake_input::handbrake_subscription, pedal_input::pedal_subscription};
+use crate::{
+    components::{
+        curve_editor::curve_editor, curve_points::curve_points, deadzones::deadzones,
+        debug_box::debug_box, live_box::live_box, sidebar::sidebar, title_bar::title_bar,
+    },
+    utils::shifter_input::shifter_subscription,
+};
 
 fn main() -> iced::Result {
     iced::application(App::new, App::update, App::view)
@@ -65,7 +71,7 @@ impl NavItem {
             NavItem::Throttle | NavItem::Brake | NavItem::Clutch | NavItem::Handbrake => {
                 theme.palette().primary
             }
-            _ => COLOR_DIM,
+            NavItem::Shifter => Color::WHITE,
         }
     }
 
@@ -129,6 +135,7 @@ struct App {
     devices: DeviceStatus,
     pedal_input: PedalInput,
     handbrake_input: u16,
+    shifter_input: Shift,
     curves: DeviceCurves,
     debug: bool,
     theme: Theme,
@@ -145,6 +152,7 @@ enum Message {
     DevicesUpdated(DeviceStatus),
     PedalInputUpdated(PedalInput),
     HandbrakeInputUpdated(u16),
+    ShifterInputUpdated(Shift),
     SetDeadzone(DzEnd, u8),
     SetCurvePoint(usize, u16),
     ToggleDebug,
@@ -158,6 +166,7 @@ impl App {
             pedal_input: PedalInput::default(),
             curves: DeviceCurves::default(),
             handbrake_input: 0,
+            shifter_input: Shift::default(),
             debug: false,
             theme: Theme::Oxocarbon,
         }
@@ -186,6 +195,10 @@ impl App {
             }
             Message::HandbrakeInputUpdated(value) => {
                 self.handbrake_input = value;
+                Task::none()
+            }
+            Message::ShifterInputUpdated(shift) => {
+                self.shifter_input = shift;
                 Task::none()
             }
             Message::SetDeadzone(end, value) => {
@@ -222,15 +235,35 @@ impl App {
             time::every(Duration::from_secs(2)).map(|_| Message::RefreshDevices),
             pedal_subscription(),
             handbrake_subscription(),
+            shifter_subscription(),
         ])
     }
 
     fn view(&self) -> Element<'_, Message> {
+        let accent = self.selected.device_color(&self.theme);
+
+        // Return shift view immediately
+        if self.selected == NavItem::Shifter {
+            return {
+                column![
+                    title_bar(),
+                    row![
+                        sidebar(&self.selected, &self.devices, &self.theme),
+                        container(shifter_view(self.shifter_input, accent))
+                            .padding(20)
+                            .width(Length::Fill)
+                            .height(Length::Fill)
+                    ]
+                    .height(Length::Fill)
+                ]
+                .into()
+            };
+        }
+
         let curve = self.selected.curve(&self.curves).unwrap();
         let raw = self
             .selected
             .raw_value(&self.pedal_input, self.handbrake_input);
-        let accent = self.selected.device_color(&self.theme);
 
         let dz_bottom = curve.bottom_dz_percentage();
         let dz_top = curve.top_dz_percentage();
@@ -298,6 +331,7 @@ impl App {
                 .width(Length::Fill)
                 .height(Length::Fill)
             }
+
             false => container(
                 text(
                     "
