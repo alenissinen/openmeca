@@ -33,25 +33,16 @@ pub fn curve_points<'a>(y_values: [u16; 5], accent: Color) -> Element<'a, Messag
         })
         .collect();
 
-    container(
-        column![
-            text("CURVE POINTS")
-                .size(10)
-                .font(FONT_MONO)
-                .color(COLOR_SUBTLE),
-            row(points),
-        ]
-        .spacing(8),
-    )
-    .padding(16)
-    .style(move |_: &Theme| container::Style {
-        background: Some(Background::Color(COLOR_CARD_BG)),
-        border: Border {
-            color: COLOR_BORDER,
-            width: 1.0,
-            radius: 6.0.into(),
-        },
-        ..Default::default()
-    })
-    .into()
+    container(column![text("CURVE POINTS").size(14).font(FONT_MONO), row(points),].spacing(8))
+        .padding(16)
+        .style(move |_: &Theme| container::Style {
+            background: Some(Background::Color(COLOR_CARD_BG)),
+            border: Border {
+                color: COLOR_BORDER,
+                width: 1.0,
+                radius: 6.0.into(),
+            },
+            ..Default::default()
+        })
+        .into()
 }

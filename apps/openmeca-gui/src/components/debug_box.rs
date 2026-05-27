@@ -31,7 +31,7 @@ pub fn debug_box<'a>(
 
     container(
         column![
-            text("FEATURE REPORT (32 x uint16 LE)")
+            text("FEATURE REPORT (32 x uint16)")
                 .size(12)
                 .font(FONT_MONO)
                 .color(accent),
