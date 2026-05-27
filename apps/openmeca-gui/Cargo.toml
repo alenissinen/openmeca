@@ -6,6 +6,6 @@ edition = "2024"
 license = "MIT"
 
 [dependencies]
-iced = { version = "0.14", features = ["canvas", "tokio"] }
+iced = { version = "0.14", features = ["canvas", "tokio", "image"] }
 tokio = "1"
 meca-hid = { path = "../../crates/meca-hid" }

@@ -9,11 +9,11 @@ use crate::{
     constants::{ACCENT_GREEN, ACCENT_RED, COLOR_INACTIVE, FONT_UI},
 };
 
-pub fn nav_item<'a, 'b>(
+pub fn nav_item<'a>(
     item: NavItem,
     devices: &'a DeviceStatus,
     selected: NavItem,
-    theme: &'b Theme,
+    theme: &'a Theme,
 ) -> Element<'a, Message> {
     let connected = item.is_connected(devices);
     let selected = selected == item;

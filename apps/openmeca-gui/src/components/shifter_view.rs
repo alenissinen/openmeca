@@ -6,7 +6,7 @@ use meca_hid::Shift;
 
 use crate::{
     Message,
-    constants::{COLOR_BORDER, COLOR_CARD_BG, COLOR_INACTIVE, COLOR_SUBTLE, FONT_MONO, FONT_UI},
+    constants::{COLOR_BORDER, COLOR_CARD_BG, COLOR_INACTIVE, FONT_MONO, FONT_UI},
 };
 
 fn shift_indicator<'a>(label: &'static str, active: bool, accent: Color) -> Element<'a, Message> {
@@ -40,8 +40,8 @@ pub fn shifter_view<'a>(shift: Shift, accent: Color) -> Element<'a, Message> {
         column![
             text("SHIFTER TEST").size(18).font(FONT_UI),
             row![
-                shift_indicator("▲  UP", shift.up, accent),
-                shift_indicator("▼  DOWN", shift.down, accent),
+                shift_indicator("▲ UP", shift.up, accent),
+                shift_indicator("▼ DOWN", shift.down, accent),
             ]
             .spacing(16)
         ]
