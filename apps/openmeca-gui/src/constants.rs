@@ -19,7 +19,7 @@ pub const COLOR_INACTIVE: Color = Color::from_rgba(0.75, 0.75, 0.78, 0.5);
 pub const COLOR_DIM: Color = Color::from_rgb(0.45, 0.45, 0.48);
 pub const COLOR_TITLE_BG: Color = Color::from_rgb(0.04, 0.04, 0.04);
 pub const COLOR_SIDEBAR_BG: Color = Color::from_rgb(0.07, 0.07, 0.07);
-
+pub const COLOR_TEXT: Color = Color::from_rgb(0.867, 0.882, 0.902);
 pub const COLOR_CARD_BG: Color = Color::from_rgb(0.149, 0.149, 0.149);
 pub const COLOR_BORDER: Color = Color::from_rgb(0.224, 0.224, 0.224);
-pub const COLOR_SUBTLE: Color = Color::from_rgb(0.322, 0.322, 0.322);
+pub const COLOR_SUBTLE: Color = Color::from_rgb(0.5, 0.5, 0.5);
